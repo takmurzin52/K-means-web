@@ -6,9 +6,8 @@ import { GlobalStyles } from './styles/GlobalStyles';
 import { theme } from './styles/theme';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
-
-const DashboardPage = () => <div style={{ padding: '2rem', textAlign: 'center' }}>Главная страница (скоро)</div>;
-const HistoryPage = () => <div style={{ padding: '2rem', textAlign: 'center' }}>История (скоро)</div>;
+import Dashboard from './pages/Dashboard';
+import HistoryPage from './pages/HistoryPage';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -27,7 +26,7 @@ const App: React.FC = () => {
                         <Route path="/register" element={<Register />} />
                         <Route path="/" element={
                             <PrivateRoute>
-                                <DashboardPage />
+                                <Dashboard />
                             </PrivateRoute>
                         } />
                         <Route path="/history" element={
