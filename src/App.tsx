@@ -1,26 +1,45 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { GlobalStyles } from './styles/GlobalStyles';
+import { theme } from './styles/theme';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const DashboardPage = () => <div style={{ padding: '2rem', textAlign: 'center' }}>Главная страница (скоро)</div>;
+const HistoryPage = () => <div style={{ padding: '2rem', textAlign: 'center' }}>История (скоро)</div>;
+
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>;
+    return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
+
+const App: React.FC = () => {
+    return (
+        <ThemeProvider theme={theme}>
+            <GlobalStyles />
+            <AuthProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/" element={
+                            <PrivateRoute>
+                                <DashboardPage />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/history" element={
+                            <PrivateRoute>
+                                <HistoryPage />
+                            </PrivateRoute>
+                        } />
+                    </Routes>
+                </BrowserRouter>
+            </AuthProvider>
+        </ThemeProvider>
+    );
+};
 
 export default App;
