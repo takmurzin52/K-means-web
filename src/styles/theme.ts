@@ -9,6 +9,7 @@ export const theme = {
             main: '#f8fafc',
             card: '#ffffff',
             overlay: 'rgba(255, 255, 255, 0.9)',
+            hover: '#e9ecef',
         },
         text: {
             primary: '#1e293b',

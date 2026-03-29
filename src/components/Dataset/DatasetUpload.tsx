@@ -68,7 +68,7 @@ const ButtonContainer = styled.div`
 `;
 
 interface DatasetUploadProps {
-    onUploadSuccess: (datasetId: number, headers: string[]) => void;
+    onUploadSuccess: (datasetId: number, headers: string[], data: Record<string, any>[], fileName: string) => void;
 }
 
 const DatasetUpload: React.FC<DatasetUploadProps> = ({ onUploadSuccess }) => {
@@ -132,7 +132,7 @@ const DatasetUpload: React.FC<DatasetUploadProps> = ({ onUploadSuccess }) => {
             });
 
             setSuccess(true);
-            onUploadSuccess(response.id, headers);
+            onUploadSuccess(response.id, headers, data, file.name);
 
             // Сбрасываем файл через 2 секунды
             setTimeout(() => {

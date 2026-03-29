@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { performClustering, saveCluster } from '../../api/endpoints';
 import { ClusterResult } from '../../types';
 import Button from '../common/Button';
-import { FiSliders, FiSend, FiSave } from 'react-icons/fi';
+import { FiSend, FiSave } from 'react-icons/fi';
 
 const Container = styled.div`
     background: ${({ theme }) => theme.colors.background.card};
@@ -143,13 +143,53 @@ const SaveButton = styled(Button)`
     margin-top: 16px;
 `;
 
+const Input = styled.input`
+    width: 100%;
+    padding: 12px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+    font-size: 14px;
+    margin-bottom: 16px;
+    
+    &:focus {
+        outline: none;
+        border-color: ${({ theme }) => theme.colors.primary.light};
+    }
+`;
+
+// Функция для склонения слова "точка"
+const getPointsDeclension = (count: number): string => {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+        return 'точек';
+    }
+
+    if (lastDigit === 1) {
+        return 'точка';
+    }
+
+    if (lastDigit >= 2 && lastDigit <= 4) {
+        return 'точки';
+    }
+
+    return 'точек';
+};
+
 interface ClusterParamsProps {
     datasetId: number;
     headers: string[];
-    onSuccess?: () => void;
+    onClusterSuccess?: (result: ClusterResult) => void;
+    onSaveSuccess?: () => void;
 }
 
-const ClusterParams: React.FC<ClusterParamsProps> = ({ datasetId, headers, onSuccess }) => {
+const ClusterParams: React.FC<ClusterParamsProps> = ({
+                                                         datasetId,
+                                                         headers,
+                                                         onClusterSuccess,
+                                                         onSaveSuccess
+                                                     }) => {
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
     const [k, setK] = useState(3);
     const [loading, setLoading] = useState(false);
@@ -179,7 +219,7 @@ const ClusterParams: React.FC<ClusterParamsProps> = ({ datasetId, headers, onSuc
                 countK: k
             });
             setResult(response);
-            // Предлагаем имя для сохранения
+            if (onClusterSuccess) onClusterSuccess(response);
             setClusterName(`cluster_k${k}_${new Date().toLocaleDateString()}`);
         } catch (err: any) {
             alert(err.response?.data?.message || 'Ошибка кластеризации');
@@ -202,13 +242,16 @@ const ClusterParams: React.FC<ClusterParamsProps> = ({ datasetId, headers, onSuc
                 name: clusterName
             });
             alert('Кластеризация сохранена в историю!');
-            if (onSuccess) onSuccess();
+            if (onSaveSuccess) onSaveSuccess();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Ошибка сохранения');
         } finally {
             setSaving(false);
         }
     };
+
+    // Сортируем кластеры по ID для правильного порядка
+    const sortedStats = result?.clusterStats ? [...result.clusterStats].sort((a, b) => a.clusterId - b.clusterId) : [];
 
     return (
         <Container>
@@ -266,36 +309,29 @@ const ClusterParams: React.FC<ClusterParamsProps> = ({ datasetId, headers, onSuc
                     <ResultTitle>📈 Результаты кластеризации</ResultTitle>
 
                     <StatsGrid>
-                        {result.clusterStats.map(stat => (
+                        {sortedStats.map(stat => (
                             <StatCard key={stat.clusterId}>
-                                <ClusterId>Кластер {stat.clusterId}</ClusterId>
-                                <ClusterCount>{stat.count} точек</ClusterCount>
+                                <ClusterId>Кластер {stat.clusterId + 1}</ClusterId>
+                                <ClusterCount>
+                                    {stat.count} {getPointsDeclension(stat.count)}
+                                </ClusterCount>
                             </StatCard>
                         ))}
                     </StatsGrid>
 
-                    <div style={{ marginBottom: '16px' }}>
-                        <input
-                            type="text"
-                            placeholder="Название кластеризации"
-                            value={clusterName}
-                            onChange={(e) => setClusterName(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            }}
-                        />
-                    </div>
+                    <Input
+                        type="text"
+                        placeholder="Название кластеризации"
+                        value={clusterName}
+                        onChange={(e) => setClusterName(e.target.value)}
+                    />
 
                     <SaveButton
                         onClick={handleSave}
                         isLoading={saving}
                         variant="secondary"
                     >
-                        <FiSave style={{ marginRight: '8px' }} />
+                        <FiSave size={18} style={{ marginLeft: '-4px', marginRight: '5px', marginBottom: '-2px' }} />
                         Сохранить в историю
                     </SaveButton>
                 </ResultContainer>

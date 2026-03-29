@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
+import HistoryList from '../components/History/HistoryList';
+import ClusterResultView from '../components/History/ClusterResultView';
 
 const Container = styled.div`
     min-height: 100vh;
@@ -13,20 +16,41 @@ const Content = styled.main`
     padding: 32px;
 `;
 
-const Title = styled.h1`
-    font-size: 32px;
-    font-weight: 700;
-    color: ${({ theme }) => theme.colors.text.primary};
-    margin-bottom: 24px;
-`;
-
 const HistoryPage: React.FC = () => {
+    const navigate = useNavigate();
+    const [viewingClusterId, setViewingClusterId] = useState<number | null>(null);
+
+    const handleViewCluster = (clusterId: number) => {
+        setViewingClusterId(clusterId);
+    };
+
+    const handleBack = () => {
+        setViewingClusterId(null);
+    };
+
+    const handleDeleteSuccess = () => {
+        // Если удалили кластер, который сейчас просматриваем, возвращаемся к списку
+        if (viewingClusterId) {
+            setViewingClusterId(null);
+        }
+    };
+
     return (
         <Container>
             <Header />
             <Content>
-                <Title>📜 История кластеризаций</Title>
-                <p style={{ color: '#64748b' }}>Здесь будут сохраненные результаты</p>
+                {viewingClusterId ? (
+                    <ClusterResultView
+                        clusterId={viewingClusterId}
+                        onBack={handleBack}
+                        onDelete={handleDeleteSuccess}
+                    />
+                ) : (
+                    <HistoryList
+                        onViewCluster={handleViewCluster}
+                        onDeleteSuccess={handleDeleteSuccess}
+                    />
+                )}
             </Content>
         </Container>
     );
